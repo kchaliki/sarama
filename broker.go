@@ -231,6 +231,21 @@ func (b *Broker) Produce(request *ProduceRequest) (*ProduceResponse, error) {
 }
 
 func (b *Broker) Fetch(request *FetchRequest) (*FetchResponse, error) {
+	switch request.version() {
+	case 0:
+		break
+	case 1:
+		if !b.conf.Version.IsAtLeast(V0_9_0_0) {
+			return nil, ErrUnsupportedVersion
+		}
+	case 2:
+		if !b.conf.Version.IsAtLeast(V0_10_0_0) {
+			return nil, ErrUnsupportedVersion
+		}
+	default:
+		return nil, ErrUnsupportedVersion
+	}
+
 	response := new(FetchResponse)
 
 	err := b.sendAndReceive(request, response)
